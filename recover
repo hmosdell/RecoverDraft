@@ -1,0 +1,56 @@
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef uint8_t BYTE;
+
+int main(int argc, char *argv[])
+{
+    FILE* oPointer = NULL;
+    char* input = argv[1];
+
+    // Check command line arguments
+    if (argc != 2)
+    {
+        printf("Usage: ./recover FILE\n");
+        return 1;
+    }
+
+    FILE* iPointer = fopen(input, "r");
+    if (input == NULL)
+    {
+        printf("Could not open file.\n");
+        return 1;
+    }
+
+    BYTE buffer[512];
+    int jpeg_count = 0;
+    char name[8];
+    while (fread(buffer, sizeof(buffer), 1, iPointer) == sizeof(buffer))
+    {
+        if ((buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0))
+        {
+            jpeg_count++;
+            sprintf(name, "%03i.jpg", jpeg_count);
+
+            if (jpeg_count == 1)
+            {
+                oPointer = fopen(name, "w");
+                fwrite(buffer, sizeof(buffer), 1, oPointer);
+                break;
+            }
+            else
+            {
+                fclose(oPointer);
+                oPointer = fopen(name, "w");
+            }
+        else 
+        {
+            fwrite(buffer, sizeof(buffer), 1, oPointer);
+        }
+        }
+    }
+    fclose(oPointer);
+    fclose(iPointer);
+}
