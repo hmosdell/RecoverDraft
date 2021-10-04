@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     BYTE buffer[512];
     int jpeg_count = 0;
     char name[8];
-    while (fread(buffer, sizeof(buffer), 1, iPointer) == sizeof(buffer))
+    while (fread(buffer, sizeof(buffer), 1, iPointer))
     {
         if ((buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0))
         {
@@ -46,9 +46,13 @@ int main(int argc, char *argv[])
                 oPointer = fopen(name, "w");
             }
         }
-        else 
+        else if (jpeg_count >= 1) 
         {
             fwrite(buffer, sizeof(buffer), 1, oPointer);
+        }
+        else
+        {
+            continue;
         }
     }
     fclose(oPointer);
